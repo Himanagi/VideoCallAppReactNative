@@ -5,7 +5,9 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+# Set iOS platform version to 12.0 or higher as required by react-native-webrtc
+platform :ios, '13.4'
+
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -17,11 +19,15 @@ end
 target 'VideoCallAppReactNative' do
   config = use_native_modules!
 
+  # Path to react-native is specified from the config
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
+  # Explicitly include react-native-webrtc
+  pod 'react-native-webrtc', :path => '../node_modules/@videosdk.live/react-native-webrtc'
 
   target 'VideoCallAppReactNativeTests' do
     inherit! :complete
@@ -29,11 +35,11 @@ target 'VideoCallAppReactNative' do
   end
 
   post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    # Additional settings for the post-install phase
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
+      :mac_catalyst_enabled => false
       # :ccache_enabled => true
     )
   end
